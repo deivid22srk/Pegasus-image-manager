@@ -107,6 +107,53 @@ public class SteamGridDbApi {
         });
     }
     
+    public void getGameHeroes(int gameId, GridCallback callback) {
+        if (!hasApiKey()) {
+            callback.onError("API Key não configurada");
+            return;
+        }
+
+        String url = BASE_URL + "/heroes/game/" + gameId + "?limit=20";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + getApiKey())
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e(TAG, "Erro ao buscar heroes: " + e.getMessage());
+                callback.onError("Erro de conexão: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    Log.e(TAG, "Resposta não bem-sucedida: " + response.code());
+                    callback.onError("Erro do servidor: " + response.code());
+                    return;
+                }
+
+                try {
+                    String responseBody = response.body().string();
+                    Log.d(TAG, "Resposta dos heroes: " + responseBody);
+
+                    SteamGridDbResponse.GridResponse gridResponse = gson.fromJson(responseBody, SteamGridDbResponse.GridResponse.class);
+
+                    if (gridResponse.isSuccess() && gridResponse.getData() != null) {
+                        callback.onSuccess(gridResponse.getData());
+                    } else {
+                        callback.onError("Nenhum banner encontrado");
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Erro ao processar heroes: " + e.getMessage());
+                    callback.onError("Erro ao processar resposta");
+                }
+            }
+        });
+    }
+
     public void getGameGrids(int gameId, GridCallback callback) {
         if (!hasApiKey()) {
             callback.onError("API Key não configurada");

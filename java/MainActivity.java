@@ -270,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements GameAdapter.OnGam
         }
         
         currentGamePosition = position;
-        searchCoverOnline(game);
+        showOnlineSearchDialog(game);
     }
     
     private void showImageSourceDialog(Game game) {
@@ -283,13 +283,29 @@ public class MainActivity extends AppCompatActivity implements GameAdapter.OnGam
                     imagePickerLauncher.launch(intent);
                 })
                 .setNegativeButton("Buscar Online", (dialog, which) -> {
-                    searchCoverOnline(game);
+                    showOnlineSearchDialog(game);
                 })
                 .setNeutralButton("Cancelar", null)
                 .show();
     }
+
+    private void showOnlineSearchDialog(Game game) {
+        final CharSequence[] options = {"Buscar Capa", "Buscar Banner", "Cancelar"};
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Selecione o tipo de imagem");
+        builder.setItems(options, (dialog, item) -> {
+            if (options[item].equals("Buscar Capa")) {
+                startOnlineSearch(game, "cover");
+            } else if (options[item].equals("Buscar Banner")) {
+                startOnlineSearch(game, "banner");
+            } else if (options[item].equals("Cancelar")) {
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
     
-    private void searchCoverOnline(Game game) {
+    private void startOnlineSearch(Game game, String searchType) {
         // Verifica se SteamGridDB está configurado
         SteamGridDbApi api = new SteamGridDbApi(this);
         if (!api.hasApiKey()) {
@@ -297,11 +313,11 @@ public class MainActivity extends AppCompatActivity implements GameAdapter.OnGam
             startActivity(new Intent(this, SettingsActivity.class));
             return;
         }
-        
+
         Intent intent = new Intent(this, ImageSearchActivity.class);
         intent.putExtra(ImageSearchActivity.EXTRA_GAME_NAME, game.getName());
-        intent.putExtra(ImageSearchActivity.EXTRA_PEGASUS_FOLDER_URI, 
-            selectedFolderUri);
+        intent.putExtra(ImageSearchActivity.EXTRA_PEGASUS_FOLDER_URI, selectedFolderUri);
+        intent.putExtra("search_type", searchType); // "cover" or "banner"
         imageSearchLauncher.launch(intent);
     }
 

@@ -33,6 +33,7 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
     
     public static final String EXTRA_GAME_NAME = "game_name";
     public static final String EXTRA_PEGASUS_FOLDER_URI = "pegasus_folder_uri";
+    public static final String EXTRA_SEARCH_TYPE = "search_type";
     
     private RecyclerView recyclerViewCovers;
     private ProgressBar progressBar;
@@ -47,6 +48,7 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
     
     private String initialGameName;
     private Uri pegasusFolderUri;
+    private String searchType;
     private SteamGridDbApi steamGridDbApi;
     private Handler mainHandler;
     
@@ -60,17 +62,22 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
         setSupportActionBar(findViewById(R.id.topAppBar));
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Buscar Capas");
         }
         
         initViews();
         getIntentData();
         
+        if ("banner".equals(searchType)) {
+            getSupportActionBar().setTitle("Buscar Banners");
+        } else {
+            getSupportActionBar().setTitle("Buscar Capas");
+        }
+
         mainHandler = new Handler(Looper.getMainLooper());
         steamGridDbApi = new SteamGridDbApi(this);
         
         etGameName.setText(initialGameName);
-        btnSearch.setOnClickListener(v -> searchCovers());
+        btnSearch.setOnClickListener(v -> startImageSearch());
 
         // Oculta o layout de loading inicialmente
         showLoading(false);
@@ -95,22 +102,23 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
         Intent intent = getIntent();
         initialGameName = intent.getStringExtra(EXTRA_GAME_NAME);
         pegasusFolderUri = intent.getParcelableExtra(EXTRA_PEGASUS_FOLDER_URI);
-        
-        if (initialGameName == null || pegasusFolderUri == null) {
+        searchType = intent.getStringExtra(EXTRA_SEARCH_TYPE);
+
+        if (initialGameName == null || pegasusFolderUri == null || searchType == null) {
             Toast.makeText(this, "Dados inválidos", Toast.LENGTH_SHORT).show();
             finish();
         }
     }
-    
-    private void searchCovers() {
+
+    private void startImageSearch() {
         showLoading(true);
         tvSearchStatus.setText("Buscando jogos...");
-        
+
         if (!steamGridDbApi.hasApiKey()) {
             showError("API Key do SteamGridDB não configurada");
             return;
         }
-        
+
         String currentGameName = etGameName.getText().toString();
 
         steamGridDbApi.searchGames(currentGameName, new SteamGridDbApi.SearchCallback() {
@@ -120,35 +128,39 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
                     mainHandler.post(() -> showError("Nenhum jogo encontrado"));
                     return;
                 }
-                
-                // Pegar o primeiro resultado
+
                 SteamGridDbResponse.GameResult selectedGame = games.get(0);
                 
-                mainHandler.post(() -> {
-                    tvSearchStatus.setText("Buscando capas...");
-                });
-                
-                // Buscar capas para o jogo
-                steamGridDbApi.getGameGrids(selectedGame.getId(), new SteamGridDbApi.GridCallback() {
+                String statusText = "banner".equals(searchType) ? "Buscando banners..." : "Buscando capas...";
+                mainHandler.post(() -> tvSearchStatus.setText(statusText));
+
+                SteamGridDbApi.GridCallback gridCallback = new SteamGridDbApi.GridCallback() {
                     @Override
                     public void onSuccess(List<SteamGridDbResponse.GridResult> grids) {
                         mainHandler.post(() -> {
                             showLoading(false);
                             if (grids.isEmpty()) {
-                                showError("Nenhuma capa encontrada");
+                                String errorMsg = "banner".equals(searchType) ? "Nenhum banner encontrado" : "Nenhuma capa encontrada";
+                                showError(errorMsg);
                             } else {
-                                showCovers(grids);
+                                showImageResults(grids);
                             }
                         });
                     }
-                    
+
                     @Override
                     public void onError(String error) {
-                        mainHandler.post(() -> showError("Erro ao buscar capas: " + error));
+                        mainHandler.post(() -> showError("Erro ao buscar imagens: " + error));
                     }
-                });
+                };
+
+                if ("banner".equals(searchType)) {
+                    steamGridDbApi.getGameHeroes(selectedGame.getId(), gridCallback);
+                } else {
+                    steamGridDbApi.getGameGrids(selectedGame.getId(), gridCallback);
+                }
             }
-            
+
             @Override
             public void onError(String error) {
                 mainHandler.post(() -> showError("Erro na busca: " + error));
@@ -169,147 +181,129 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
         tvErrorMessage.setText(message);
     }
     
-    private void showCovers(List<SteamGridDbResponse.GridResult> covers) {
+    private void showImageResults(List<SteamGridDbResponse.GridResult> images) {
         layoutLoading.setVisibility(View.GONE);
         layoutContent.setVisibility(View.VISIBLE);
         layoutError.setVisibility(View.GONE);
-        adapter = new CoverAdapter(this, covers, this);
+        adapter = new CoverAdapter(this, images, this);
         recyclerViewCovers.setAdapter(adapter);
     }
-    
+
     @Override
-    public void onCoverClick(SteamGridDbResponse.GridResult cover) {
+    public void onCoverClick(SteamGridDbResponse.GridResult image) {
         showLoading(true);
         tvSearchStatus.setText("Baixando imagem...");
-        
-        steamGridDbApi.downloadImage(cover.getUrl(), new Callback() {
+
+        steamGridDbApi.downloadImage(image.getUrl(), new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 mainHandler.post(() -> {
                     showLoading(false);
-                    Toast.makeText(ImageSearchActivity.this, 
-                        "Erro ao baixar imagem: " + e.getMessage(), 
-                        Toast.LENGTH_LONG).show();
+                    Toast.makeText(ImageSearchActivity.this,
+                            "Erro ao baixar imagem: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
                 });
             }
-            
+
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (!response.isSuccessful()) {
                     mainHandler.post(() -> {
                         showLoading(false);
-                        Toast.makeText(ImageSearchActivity.this, 
-                            "Erro no download: " + response.code(), 
-                            Toast.LENGTH_LONG).show();
+                        Toast.makeText(ImageSearchActivity.this,
+                                "Erro no download: " + response.code(),
+                                Toast.LENGTH_LONG).show();
                     });
                     return;
                 }
-                
+
                 try {
-                    // Criar diretório /media/nomedojogo/
                     DocumentFile pegasusFolder = DocumentFile.fromTreeUri(ImageSearchActivity.this, pegasusFolderUri);
                     if (pegasusFolder == null) {
-                        mainHandler.post(() -> {
-                            showLoading(false);
-                            Toast.makeText(ImageSearchActivity.this, 
-                                "Erro ao acessar pasta", Toast.LENGTH_SHORT).show();
-                        });
+                        showErrorAndFinish("Erro ao acessar pasta");
                         return;
                     }
-                    
+
                     DocumentFile mediaFolder = pegasusFolder.findFile("media");
                     if (mediaFolder == null || !mediaFolder.isDirectory()) {
                         mediaFolder = pegasusFolder.createDirectory("media");
                     }
-                    
                     if (mediaFolder == null) {
-                        mainHandler.post(() -> {
-                            showLoading(false);
-                            Toast.makeText(ImageSearchActivity.this, 
-                                "Erro ao criar pasta media", Toast.LENGTH_SHORT).show();
-                        });
+                        showErrorAndFinish("Erro ao criar pasta media");
                         return;
                     }
-                    
+
                     DocumentFile gameFolder = mediaFolder.findFile(initialGameName);
                     if (gameFolder == null || !gameFolder.isDirectory()) {
                         gameFolder = mediaFolder.createDirectory(initialGameName);
                     }
-                    
                     if (gameFolder == null) {
-                        mainHandler.post(() -> {
-                            showLoading(false);
-                            Toast.makeText(ImageSearchActivity.this, 
-                                "Erro ao criar pasta do jogo", Toast.LENGTH_SHORT).show();
-                        });
+                        showErrorAndFinish("Erro ao criar pasta do jogo");
                         return;
                     }
-                    
-                    // Criar arquivo boxFront.png
-                    DocumentFile existingFile = gameFolder.findFile("boxFront.png");
+
+                    String fileName = "banner".equals(searchType) ? "screenshot.png" : "boxFront.png";
+                    String mimeType = image.getMime().equals("image/jpeg") ? "image/jpeg" : "image/png";
+
+                    DocumentFile existingFile = gameFolder.findFile(fileName);
                     if (existingFile != null && existingFile.isFile()) {
                         existingFile.delete();
                     }
-                    
-                    DocumentFile imageFile = gameFolder.createFile("image/png", "boxFront.png");
+
+                    DocumentFile imageFile = gameFolder.createFile(mimeType, fileName);
                     if (imageFile == null) {
-                        mainHandler.post(() -> {
-                            showLoading(false);
-                            Toast.makeText(ImageSearchActivity.this, 
-                                "Erro ao criar arquivo", Toast.LENGTH_SHORT).show();
-                        });
+                        showErrorAndFinish("Erro ao criar arquivo de imagem");
                         return;
                     }
-                    
-                    // Copiar dados da imagem
+
                     try (InputStream inputStream = response.body().byteStream();
                          OutputStream outputStream = getContentResolver().openOutputStream(imageFile.getUri())) {
-                        
+
                         if (outputStream == null) {
-                            mainHandler.post(() -> {
-                                showLoading(false);
-                                Toast.makeText(ImageSearchActivity.this, 
-                                    "Erro ao abrir arquivo para escrita", Toast.LENGTH_SHORT).show();
-                            });
+                            showErrorAndFinish("Erro ao abrir arquivo para escrita");
                             return;
                         }
-                        
+
                         byte[] buffer = new byte[8192];
                         int bytesRead;
                         while ((bytesRead = inputStream.read(buffer)) != -1) {
                             outputStream.write(buffer, 0, bytesRead);
                         }
-                        
+
                         mainHandler.post(() -> {
                             showLoading(false);
                             Toast.makeText(ImageSearchActivity.this,
-                                "Imagem salva com sucesso!", Toast.LENGTH_SHORT).show();
+                                    "Imagem salva com sucesso!", Toast.LENGTH_SHORT).show();
                             setResult(RESULT_OK);
                             finish();
                         });
                     }
                 } catch (Exception e) {
-                    mainHandler.post(() -> {
-                        showLoading(false);
-                        Toast.makeText(ImageSearchActivity.this, 
-                            "Erro ao salvar imagem: " + e.getMessage(), 
-                            Toast.LENGTH_LONG).show();
-                    });
+                    showErrorAndFinish("Erro ao salvar imagem: " + e.getMessage());
                 }
             }
         });
     }
-    
+
+    private void showErrorAndFinish(String message) {
+        mainHandler.post(() -> {
+            showLoading(false);
+            Toast.makeText(ImageSearchActivity.this, message, Toast.LENGTH_LONG).show();
+            finish();
+        });
+    }
+
     @Override
     public boolean onSupportNavigateUp() {
         finish();
         return true;
     }
-    
-    public static Intent createIntent(android.content.Context context, String gameName, Uri pegasusFolderUri) {
+
+    public static Intent createIntent(android.content.Context context, String gameName, Uri pegasusFolderUri, String searchType) {
         Intent intent = new Intent(context, ImageSearchActivity.class);
         intent.putExtra(EXTRA_GAME_NAME, gameName);
         intent.putExtra(EXTRA_PEGASUS_FOLDER_URI, pegasusFolderUri);
+        intent.putExtra(EXTRA_SEARCH_TYPE, searchType);
         return intent;
     }
 }
