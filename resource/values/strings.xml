@@ -45,4 +45,5 @@
     <string name="error_downloading_cover">Erro ao baixar capa</string>
     <string name="steamgriddb_not_configured">Configure primeiro a API Key do SteamGridDB nas configurações</string>
     <string name="no_covers_found">Nenhuma capa encontrada para este jogo</string>
+    <string name="game_name">Nome do Jogo</string>
 </resources>

@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -40,8 +42,10 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
     private LinearLayout layoutContent;
     private LinearLayout layoutError;
     private CoverAdapter adapter;
+    private EditText etGameName;
+    private Button btnSearch;
     
-    private String gameName;
+    private String initialGameName;
     private Uri pegasusFolderUri;
     private SteamGridDbApi steamGridDbApi;
     private Handler mainHandler;
@@ -65,7 +69,12 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
         mainHandler = new Handler(Looper.getMainLooper());
         steamGridDbApi = new SteamGridDbApi(this);
         
-        searchCovers();
+        etGameName.setText(initialGameName);
+        btnSearch.setOnClickListener(v -> searchCovers());
+
+        // Oculta o layout de loading inicialmente
+        showLoading(false);
+        layoutContent.setVisibility(View.GONE);
     }
     
     private void initViews() {
@@ -76,16 +85,18 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
         layoutLoading = findViewById(R.id.layoutLoading);
         layoutContent = findViewById(R.id.layoutContent);
         layoutError = findViewById(R.id.layoutError);
+        etGameName = findViewById(R.id.etGameName);
+        btnSearch = findViewById(R.id.btnSearch);
         
         recyclerViewCovers.setLayoutManager(new GridLayoutManager(this, 2));
     }
     
     private void getIntentData() {
         Intent intent = getIntent();
-        gameName = intent.getStringExtra(EXTRA_GAME_NAME);
+        initialGameName = intent.getStringExtra(EXTRA_GAME_NAME);
         pegasusFolderUri = intent.getParcelableExtra(EXTRA_PEGASUS_FOLDER_URI);
         
-        if (gameName == null || pegasusFolderUri == null) {
+        if (initialGameName == null || pegasusFolderUri == null) {
             Toast.makeText(this, "Dados inválidos", Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -100,7 +111,9 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
             return;
         }
         
-        steamGridDbApi.searchGames(gameName, new SteamGridDbApi.SearchCallback() {
+        String currentGameName = etGameName.getText().toString();
+
+        steamGridDbApi.searchGames(currentGameName, new SteamGridDbApi.SearchCallback() {
             @Override
             public void onSuccess(List<SteamGridDbResponse.GameResult> games) {
                 if (games.isEmpty()) {
@@ -218,9 +231,9 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
                         return;
                     }
                     
-                    DocumentFile gameFolder = mediaFolder.findFile(gameName);
+                    DocumentFile gameFolder = mediaFolder.findFile(initialGameName);
                     if (gameFolder == null || !gameFolder.isDirectory()) {
-                        gameFolder = mediaFolder.createDirectory(gameName);
+                        gameFolder = mediaFolder.createDirectory(initialGameName);
                     }
                     
                     if (gameFolder == null) {

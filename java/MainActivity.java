@@ -301,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements GameAdapter.OnGam
         Intent intent = new Intent(this, ImageSearchActivity.class);
         intent.putExtra(ImageSearchActivity.EXTRA_GAME_NAME, game.getName());
         intent.putExtra(ImageSearchActivity.EXTRA_PEGASUS_FOLDER_URI, 
-            game.getGameDirectory().getUri().toString());
+            selectedFolderUri);
         imageSearchLauncher.launch(intent);
     }
 
