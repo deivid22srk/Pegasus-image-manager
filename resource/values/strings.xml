@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">Pegasus Image Manager</string>
+    <string name="select_folder">Selecionar Pasta Pegasus</string>
+    <string name="change_folder">Alterar Pasta</string>
+    <string name="console_name">Console:</string>
+    <string name="games_found">Jogos Encontrados:</string>
+    <string name="add_image">Adicionar Imagem</string>
+    <string name="change_image">Alterar Imagem</string>
+    <string name="search_cover">Buscar Capa</string>
+    <string name="no_image">Sem Imagem</string>
+    <string name="select_image">Selecionar Imagem</string>
+    <string name="image_updated">Imagem atualizada com sucesso!</string>
+    <string name="error_reading_files">Erro ao ler arquivos</string>
+    <string name="no_metadata_found">Arquivo metadata.pegasus.txt não encontrado</string>
+    <string name="permission_required">Permissões de armazenamento necessárias</string>
+    <string name="directories_created">Diretórios dos jogos criados com sucesso!</string>
+    
+    <!-- Settings -->
+    <string name="settings">Configurações</string>
+    <string name="change_folder_menu">Alterar Pasta</string>
+    <string name="steamgriddb_title">SteamGridDB</string>
+    <string name="steamgriddb_description">Configure sua API Key para buscar capas automaticamente do SteamGridDB</string>
+    <string name="api_key_hint">API Key do SteamGridDB</string>
+    <string name="api_key_helper">Obtenha sua API Key gratuita em steamgriddb.com</string>
+    <string name="save_api_key">Salvar</string>
+    <string name="get_api_key">Obter API Key</string>
+    <string name="status_title">Status</string>
+    <string name="api_key_not_configured">API Key não configurada</string>
+    <string name="api_key_configured">API Key configurada</string>
+    <string name="test_connection">Testar Conexão</string>
+    <string name="api_key_saved">API Key salva com sucesso!</string>
+    <string name="connection_test_success">Conexão bem-sucedida!</string>
+    <string name="connection_test_failed">Falha na conexão: %1$s</string>
+    
+    <!-- Image Search -->
+    <string name="search_covers">Buscar Capas</string>
+    <string name="searching_covers_description">Buscando capas no SteamGridDB</string>
+    <string name="searching_covers">Buscando capas...</string>
+    <string name="search_again">Buscar Novamente</string>
+    <string name="error_searching_covers">Erro ao buscar capas</string>
+    <string name="retry">Tentar Novamente</string>
+    <string name="select_cover">Selecionar</string>
+    <string name="downloading_cover">Baixando capa...</string>
+    <string name="cover_downloaded">Capa baixada com sucesso!</string>
+    <string name="error_downloading_cover">Erro ao baixar capa</string>
+    <string name="steamgriddb_not_configured">Configure primeiro a API Key do SteamGridDB nas configurações</string>
+    <string name="no_covers_found">Nenhuma capa encontrada para este jogo</string>
+</resources>
