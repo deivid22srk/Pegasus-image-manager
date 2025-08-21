@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -81,12 +80,6 @@ public class CoverAdapter extends RecyclerView.Adapter<CoverAdapter.ViewHolder> 
             }
         });
         
-        // Click listener para botão select também
-        holder.btnSelect.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onCoverClick(cover);
-            }
-        });
     }
 
     @Override
@@ -105,7 +98,6 @@ public class CoverAdapter extends RecyclerView.Adapter<CoverAdapter.ViewHolder> 
         ChipGroup chipGroupTags;
         ImageView imgAuthorAvatar;
         TextView tvAuthorName;
-        MaterialButton btnSelect;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -114,7 +106,6 @@ public class CoverAdapter extends RecyclerView.Adapter<CoverAdapter.ViewHolder> 
             chipGroupTags = itemView.findViewById(R.id.chipGroupTags);
             imgAuthorAvatar = itemView.findViewById(R.id.imgAuthorAvatar);
             tvAuthorName = itemView.findViewById(R.id.tvAuthorName);
-            btnSelect = itemView.findViewById(R.id.btnSelect);
         }
     }
 }
