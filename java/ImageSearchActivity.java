@@ -282,8 +282,9 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
                         
                         mainHandler.post(() -> {
                             showLoading(false);
-                            Toast.makeText(ImageSearchActivity.this, 
+                            Toast.makeText(ImageSearchActivity.this,
                                 "Imagem salva com sucesso!", Toast.LENGTH_SHORT).show();
+                            setResult(RESULT_OK);
                             finish();
                         });
                     }

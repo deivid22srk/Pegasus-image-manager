@@ -1,7 +1,9 @@
 package com.example.pegasusimagemanager;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.DocumentsContract;
 import androidx.documentfile.provider.DocumentFile;
 
 import java.io.BufferedReader;
@@ -255,5 +257,25 @@ public class FileHelper {
         
         // Cria nova imagem
         return gameDirectory.createFile("image/png", "boxFront.png");
+    }
+
+    /**
+     * Obtém a data da última modificação de um arquivo a partir de sua Uri.
+     * @param context Contexto da aplicação.
+     * @param uri Uri do arquivo.
+     * @return O timestamp da última modificação em milissegundos, ou 0 se não puder ser obtido.
+     */
+    public static long getLastModified(Context context, Uri uri) {
+        try (Cursor cursor = context.getContentResolver().query(uri, new String[]{DocumentsContract.Document.COLUMN_LAST_MODIFIED}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int lastModifiedIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED);
+                if (lastModifiedIndex != -1) {
+                    return cursor.getLong(lastModifiedIndex);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

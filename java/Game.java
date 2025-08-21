@@ -9,6 +9,7 @@ public class Game {
     private Uri imageUri;
     private DocumentFile gameDirectory;
     private boolean hasImage;
+    private long imageLastModified;
 
     public Game(String name) {
         this.name = name;
@@ -38,6 +39,13 @@ public class Game {
     public void setImageUri(Uri imageUri) {
         this.imageUri = imageUri;
         this.hasImage = imageUri != null;
+        if (imageUri == null) {
+            this.imageLastModified = 0;
+        }
+    }
+
+    public long getImageLastModified() {
+        return imageLastModified;
     }
 
     public DocumentFile getGameDirectory() {
@@ -98,11 +106,13 @@ public class Game {
         if (imageFile != null) {
             this.imageUri = imageFile.getUri();
             this.hasImage = true;
+            this.imageLastModified = FileHelper.getLastModified(context, imageFile.getUri());
             return true;
         }
         
         this.imageUri = null;
         this.hasImage = false;
+        this.imageLastModified = 0;
         return false;
     }
 }

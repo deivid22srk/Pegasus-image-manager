@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.signature.ObjectKey;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
@@ -89,9 +90,10 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder
                 imgGameCover.setVisibility(View.VISIBLE);
                 btnAddImage.setText(context.getString(R.string.change_image));
                 
-                // Carrega imagem usando URI
+                // Carrega imagem usando URI com assinatura para cache busting
                 Glide.with(context)
                         .load(game.getImageUri())
+                        .signature(new ObjectKey(String.valueOf(game.getImageLastModified())))
                         .centerCrop()
                         .placeholder(android.R.drawable.ic_menu_gallery)
                         .into(imgGameCover);
