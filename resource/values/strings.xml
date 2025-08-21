@@ -48,4 +48,5 @@
     <string name="game_name">Nome do Jogo</string>
     <string name="game_cover_description">Capa do Jogo</string>
     <string name="author_avatar_description">Avatar do autor</string>
+    <string name="game_banner_description">Banner do Jogo</string>
 </resources>

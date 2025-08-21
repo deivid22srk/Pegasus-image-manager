@@ -16,6 +16,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -69,8 +70,10 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
         
         if ("banner".equals(searchType)) {
             getSupportActionBar().setTitle("Buscar Banners");
+            recyclerViewCovers.setLayoutManager(new LinearLayoutManager(this));
         } else {
             getSupportActionBar().setTitle("Buscar Capas");
+            recyclerViewCovers.setLayoutManager(new GridLayoutManager(this, 2));
         }
 
         mainHandler = new Handler(Looper.getMainLooper());
@@ -94,8 +97,6 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
         layoutError = findViewById(R.id.layoutError);
         etGameName = findViewById(R.id.etGameName);
         btnSearch = findViewById(R.id.btnSearch);
-        
-        recyclerViewCovers.setLayoutManager(new GridLayoutManager(this, 2));
     }
     
     private void getIntentData() {
@@ -185,7 +186,7 @@ public class ImageSearchActivity extends AppCompatActivity implements CoverAdapt
         layoutLoading.setVisibility(View.GONE);
         layoutContent.setVisibility(View.VISIBLE);
         layoutError.setVisibility(View.GONE);
-        adapter = new CoverAdapter(this, images, this);
+        adapter = new CoverAdapter(this, images, searchType, this);
         recyclerViewCovers.setAdapter(adapter);
     }
 
