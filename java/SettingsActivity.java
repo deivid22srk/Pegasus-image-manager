@@ -39,9 +39,10 @@ public class SettingsActivity extends AppCompatActivity {
         
         initializeViews();
         setupToolbar();
-        loadCurrentSettings();
         
         steamGridDbApi = new SteamGridDbApi(this);
+        loadCurrentSettings();
+
         mainHandler = new Handler(Looper.getMainLooper());
     }
     
