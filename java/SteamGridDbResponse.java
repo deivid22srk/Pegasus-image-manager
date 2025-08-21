@@ -107,6 +107,9 @@ public class SteamGridDbResponse {
         
         @SerializedName("thumb")
         private String thumb;
+
+        @SerializedName("mime")
+        private String mime;
         
         @SerializedName("tags")
         private List<String> tags;
@@ -136,6 +139,10 @@ public class SteamGridDbResponse {
         
         public void setThumb(String thumb) {
             this.thumb = thumb;
+        }
+
+        public String getMime() {
+            return mime;
         }
         
         public List<String> getTags() {
